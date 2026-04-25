@@ -1,0 +1,19 @@
+{
+  "name": "@pret/account-book",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sync:android": "cp index.html www/index.html && npx cap sync android",
+    "open:android": "cp index.html www/index.html && npx cap sync android && npx cap open android",
+    "build:apk:debug": "cp index.html www/index.html && npx cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "keywords": [],
+  "author": "Robert Yan",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1"
+  }
+}

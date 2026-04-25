@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶呼呼记账本</title>
+    <style>
+      :root {
+        --bg: #fff7fb;
+        --card: #ffffff;
+        --ink: #4a3b63;
+        --muted: #7c6d96;
+        --pink: #ffc7e6;
+        --blue: #bde7ff;
+        --yellow: #ffe9a8;
+        --mint: #c8f4d6;
+        --line: #eddcf8;
+        --shadow: 0 10px 24px rgba(128, 85, 176, 0.14);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at top right, #ffe1f0 0%, var(--bg) 35%, #f6f1ff 100%);
+      }
+
+      .page {
+        width: min(1040px, 94vw);
+        margin: 24px auto 40px;
+      }
+
+      .header {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 22px 24px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .title-wrap h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2.2vw, 2rem);
+      }
+
+      .title-wrap p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .sticker {
+        background: linear-gradient(135deg, var(--pink), #ffd9a8);
+        color: #6a4f83;
+        border-radius: 999px;
+        border: 2px solid #f4bddd;
+        padding: 8px 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .summary {
+        margin-top: 18px;
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .summary-card {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+
+      .summary-card strong {
+        display: block;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .summary-card span {
+        display: block;
+        margin-top: 6px;
+        font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+        font-weight: 800;
+      }
+
+      .summary-card.budget {
+        background: linear-gradient(135deg, #fff, var(--blue));
+      }
+
+      .summary-card.spent {
+        background: linear-gradient(135deg, #fff, var(--pink));
+      }
+
+      .summary-card.left {
+        background: linear-gradient(135deg, #fff, var(--mint));
+      }
+
+      .book {
+        margin-top: 18px;
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+
+      .book-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+
+      .book-head h2 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .book-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .month-panel {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .month-panel select,
+      .month-panel input,
+      .month-panel button {
+        min-height: 38px;
+        border-radius: 10px;
+        border: 1px solid #e8d6f7;
+        padding: 6px 10px;
+        font: inherit;
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .month-cn-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .month-cn-group span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .month-panel button {
+        border: 2px solid #f4bddd;
+        background: linear-gradient(135deg, #ffd3ea, #ffe2ad);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .entry-form {
+        margin: 10px 0 14px;
+        display: grid;
+        grid-template-columns: 1.05fr 1fr 1.3fr 1fr 1.5fr auto;
+        gap: 8px;
+      }
+
+      .entry-form input,
+      .entry-form select,
+      .entry-form button {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid #e8d6f7;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font: inherit;
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .entry-form button {
+        cursor: pointer;
+        background: linear-gradient(135deg, #ffd3ea, #ffe2ad);
+        border: 2px solid #f4bddd;
+        font-weight: 700;
+      }
+
+      .entry-form button:active {
+        transform: translateY(1px);
+      }
+
+      .hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: 14px;
+        border: 2px dashed #efd9ff;
+      }
+
+      table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+        background: #fff;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #f0e5fa;
+        padding: 10px 12px;
+        text-align: left;
+        font-size: 0.95rem;
+      }
+
+      th {
+        background: #faf4ff;
+        color: #6c5a89;
+        font-weight: 700;
+      }
+
+      tbody tr:nth-child(even) td {
+        background: #fffcff;
+      }
+
+      .tag {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .tag.food {
+        background: #ffe8f3;
+        color: #a34a7d;
+      }
+
+      .tag.traffic {
+        background: #e8f4ff;
+        color: #3d79a8;
+      }
+
+      .tag.life {
+        background: #fff4d8;
+        color: #a7772f;
+      }
+
+      .tag.income {
+        background: #e7f9ed;
+        color: #2f8a50;
+      }
+
+      .money-negative {
+        color: #9a4e79;
+        font-weight: 700;
+      }
+
+      .money-positive {
+        color: #2f8a50;
+        font-weight: 700;
+      }
+
+      .action-btn {
+        min-height: 34px;
+        border-radius: 8px;
+        border: 1px solid #f2bfd8;
+        background: #fff1f8;
+        color: #9f557d;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .budget-edit {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .budget-edit input {
+        width: 110px;
+        min-height: 34px;
+        border-radius: 8px;
+        border: 1px solid #d5eaf8;
+        padding: 4px 8px;
+      }
+
+      .budget-edit button {
+        min-height: 34px;
+        border-radius: 8px;
+        border: 1px solid #a8d6f5;
+        background: #e9f6ff;
+        color: #346f97;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .footer-note {
+        margin-top: 18px;
+        background: linear-gradient(135deg, #fff, var(--yellow));
+        border: 2px solid #ffe1a1;
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        color: #7a5b2a;
+      }
+
+      .footer-note p {
+        margin: 6px 0;
+      }
+
+      .undo-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        width: min(92vw, 460px);
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        background: #fff8d6;
+        border: 2px solid #f4d58c;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        padding: 10px 12px;
+        z-index: 20;
+      }
+
+      .undo-toast.show {
+        display: flex;
+      }
+
+      .undo-text {
+        margin: 0;
+        color: #7a5b2a;
+        font-size: 0.9rem;
+      }
+
+      .undo-btn {
+        min-height: 36px;
+        border-radius: 8px;
+        border: 1px solid #e9b95f;
+        background: #fff;
+        color: #946500;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 6px 12px;
+      }
+
+      .undo-later-btn {
+        min-height: 34px;
+        border-radius: 8px;
+        border: 1px solid #f2bfd8;
+        background: #fff1f8;
+        color: #9f557d;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 6px 10px;
+      }
+
+      .undo-later-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          width: 95vw;
+          margin-top: 14px;
+        }
+
+        .header,
+        .book {
+          padding: 14px;
+        }
+
+        .summary {
+          grid-template-columns: 1fr;
+        }
+
+        .entry-form {
+          grid-template-columns: 1fr;
+        }
+
+        th,
+        td {
+          padding: 9px 10px;
+          font-size: 0.9rem;
+        }
+
+        .sticker {
+          min-height: 40px;
+          display: inline-flex;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div class="title-wrap">
+          <h1>奶呼呼记账本</h1>
+          <p id="monthSubtitle">当前账本：2026-04 · 每天记一点，小金库更清晰</p>
+          <div class="month-panel">
+            <select id="monthSelect" aria-label="选择月份账本"></select>
+            <button id="searchMonthBtn" type="button">搜索</button>
+            <div class="month-cn-group" aria-label="新建月份账本">
+              <select id="newYearSelect" aria-label="选择年份"></select>
+              <span>年</span>
+              <select id="newMonthSelect" aria-label="选择月份"></select>
+              <span>月</span>
+            </div>
+            <button id="createMonthBtn" type="button">新建月份</button>
+          </div>
+        </div>
+        <div class="sticker">今天也要理财成功</div>
+      </header>
+
+      <section class="summary" aria-label="本月概览">
+        <article class="summary-card budget">
+          <strong>本月预算</strong>
+          <span id="budgetAmount">¥ 0</span>
+          <div class="budget-edit">
+            <input id="budgetInput" type="number" min="0" step="1" placeholder="预算" />
+            <button id="saveBudgetBtn" type="button">保存预算</button>
+          </div>
+        </article>
+        <article class="summary-card spent">
+          <strong>已花费</strong>
+          <span id="spentAmount">¥ 0</span>
+        </article>
+        <article class="summary-card left">
+          <strong>剩余金额</strong>
+          <span id="leftAmount">¥ 0</span>
+        </article>
+      </section>
+
+      <section class="book" aria-label="记账明细">
+        <div class="book-head">
+          <h2>今日到本周记账明细</h2>
+          <div class="book-tools">
+            <p class="hint">可编辑版：新增/删除记录会自动保存到当前浏览器。</p>
+            <button id="restoreDeleteBtn" class="undo-later-btn" type="button" disabled>撤销最近删除</button>
+          </div>
+        </div>
+        <form class="entry-form" id="entryForm">
+          <input id="dateInput" type="date" required />
+          <select id="categoryInput" required>
+            <option value="餐饮">餐饮</option>
+            <option value="交通">交通</option>
+            <option value="日用">日用</option>
+            <option value="娱乐">娱乐</option>
+            <option value="收入">收入</option>
+          </select>
+          <input id="usageInput" type="text" maxlength="30" placeholder="用途，例如 午餐便当" required />
+          <input id="amountInput" type="number" step="0.01" placeholder="金额，如 28.5" required />
+          <input id="noteInput" type="text" maxlength="40" placeholder="备注（可选）" />
+          <button type="submit">新增</button>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>分类</th>
+                <th>用途</th>
+                <th>金额</th>
+                <th>备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="recordBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="footer-note" aria-label="小贴士">
+        <p><strong>记账小贴士：</strong>先记录再分类，养成“当天花、当天记”的节奏。</p>
+        <p>手机端看表格时可左右滑动，数据会保存在当前设备浏览器里。</p>
+      </section>
+    </main>
+    <div class="undo-toast" id="undoToast" role="status" aria-live="polite">
+      <p class="undo-text">记录已删除</p>
+      <button type="button" class="undo-btn" id="undoDeleteBtn">撤销</button>
+    </div>
+    <script>
+      const RECORDS_BY_MONTH_KEY = "cute-ledger-records-by-month-v1";
+      const BUDGET_BY_MONTH_KEY = "cute-ledger-budget-by-month-v1";
+      const STORAGE_KEY = "cute-ledger-records-v1";
+      const BUDGET_KEY = "cute-ledger-budget-v1";
+      const UNDO_KEY = "cute-ledger-last-delete-v1";
+      const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+      const DEFAULT_BUDGET = 4500;
+      const defaultRecords = [
+        { id: "r1", date: "2026-04-21", category: "餐饮", usage: "午餐便当", amount: -28, note: "少糖奶茶 +8" },
+        { id: "r2", date: "2026-04-22", category: "交通", usage: "地铁通勤", amount: -6, note: "工作日来回" },
+        { id: "r3", date: "2026-04-23", category: "日用", usage: "纸巾和洗衣液", amount: -52, note: "超市折扣" },
+        { id: "r4", date: "2026-04-24", category: "收入", usage: "兼职稿费", amount: 300, note: "本周结算" },
+        { id: "r5", date: "2026-04-25", category: "餐饮", usage: "晚餐火锅", amount: -96, note: "和朋友聚餐" }
+      ];
+
+      const tagClassMap = {
+        餐饮: "food",
+        交通: "traffic",
+        日用: "life",
+        娱乐: "life",
+        收入: "income"
+      };
+
+      const monthSubtitle = document.getElementById("monthSubtitle");
+      const monthSelect = document.getElementById("monthSelect");
+      const searchMonthBtn = document.getElementById("searchMonthBtn");
+      const newYearSelect = document.getElementById("newYearSelect");
+      const newMonthSelect = document.getElementById("newMonthSelect");
+      const createMonthBtn = document.getElementById("createMonthBtn");
+      const recordBody = document.getElementById("recordBody");
+      const entryForm = document.getElementById("entryForm");
+      const dateInput = document.getElementById("dateInput");
+      const categoryInput = document.getElementById("categoryInput");
+      const usageInput = document.getElementById("usageInput");
+      const amountInput = document.getElementById("amountInput");
+      const noteInput = document.getElementById("noteInput");
+      const budgetAmount = document.getElementById("budgetAmount");
+      const spentAmount = document.getElementById("spentAmount");
+      const leftAmount = document.getElementById("leftAmount");
+      const budgetInput = document.getElementById("budgetInput");
+      const saveBudgetBtn = document.getElementById("saveBudgetBtn");
+      const undoToast = document.getElementById("undoToast");
+      const undoDeleteBtn = document.getElementById("undoDeleteBtn");
+      const restoreDeleteBtn = document.getElementById("restoreDeleteBtn");
+
+      let recordsByMonth = loadRecordsByMonth();
+      let budgetByMonth = loadBudgetByMonth();
+      let currentMonthKey = getCurrentMonthKey();
+      let records = [];
+      let budget = DEFAULT_BUDGET;
+      let lastDeletedState = loadUndoState();
+      let undoTimerId = null;
+
+      function getCurrentMonthKey() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        return year + "-" + month;
+      }
+
+      function formatMonthLabel(monthKey) {
+        const parts = monthKey.split("-");
+        return parts[0] + " 年 " + parts[1] + " 月";
+      }
+
+      function initCreateMonthControls() {
+        const yearOptions = [];
+        for (let y = 1900; y <= 2100; y += 1) {
+          yearOptions.push("<option value='" + y + "'>" + y + "</option>");
+        }
+        newYearSelect.innerHTML = yearOptions.join("");
+
+        const monthOptions = [];
+        for (let m = 1; m <= 12; m += 1) {
+          const monthValue = String(m).padStart(2, "0");
+          monthOptions.push("<option value='" + monthValue + "'>" + m + "</option>");
+        }
+        newMonthSelect.innerHTML = monthOptions.join("");
+      }
+
+      function syncCreateMonthControls(monthKey) {
+        const parts = monthKey.split("-");
+        newYearSelect.value = parts[0];
+        newMonthSelect.value = parts[1];
+      }
+
+      function getCreateMonthKey() {
+        const year = newYearSelect.value;
+        const month = newMonthSelect.value;
+        if (!year || !month) return "";
+        return year + "-" + month;
+      }
+
+      function setDateInputToToday() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        dateInput.value = year + "-" + month + "-" + day;
+      }
+
+      function normalizeMonthMap(raw, fallback) {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback;
+        return raw;
+      }
+
+      function loadRecordsByMonth() {
+        const rawMap = localStorage.getItem(RECORDS_BY_MONTH_KEY);
+        if (rawMap) {
+          try {
+            return normalizeMonthMap(JSON.parse(rawMap), {});
+          } catch (error) {
+            return {};
+          }
+        }
+
+        const rawOld = localStorage.getItem(STORAGE_KEY);
+        const monthKey = getCurrentMonthKey();
+        if (rawOld) {
+          try {
+            const oldList = JSON.parse(rawOld);
+            if (Array.isArray(oldList)) {
+              const migrated = { [monthKey]: oldList };
+              localStorage.setItem(RECORDS_BY_MONTH_KEY, JSON.stringify(migrated));
+              return migrated;
+            }
+          } catch (error) {}
+        }
+
+        const initial = { "2026-04": defaultRecords };
+        localStorage.setItem(RECORDS_BY_MONTH_KEY, JSON.stringify(initial));
+        return initial;
+      }
+
+      function saveRecordsByMonth() {
+        localStorage.setItem(RECORDS_BY_MONTH_KEY, JSON.stringify(recordsByMonth));
+      }
+
+      function loadBudgetByMonth() {
+        const rawMap = localStorage.getItem(BUDGET_BY_MONTH_KEY);
+        if (rawMap) {
+          try {
+            return normalizeMonthMap(JSON.parse(rawMap), {});
+          } catch (error) {
+            return {};
+          }
+        }
+
+        const oldBudgetRaw = localStorage.getItem(BUDGET_KEY);
+        const monthKey = getCurrentMonthKey();
+        const oldBudget = Number(oldBudgetRaw);
+        const migratedValue = Number.isFinite(oldBudget) && oldBudget >= 0 ? oldBudget : DEFAULT_BUDGET;
+        const initial = { [monthKey]: migratedValue };
+        localStorage.setItem(BUDGET_BY_MONTH_KEY, JSON.stringify(initial));
+        return initial;
+      }
+
+      function saveBudgetByMonth() {
+        localStorage.setItem(BUDGET_BY_MONTH_KEY, JSON.stringify(budgetByMonth));
+      }
+
+      function loadUndoState() {
+        const raw = localStorage.getItem(UNDO_KEY);
+        if (!raw) return null;
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed || !parsed.record || !parsed.monthKey || !parsed.expiresAt) return null;
+          if (Date.now() > parsed.expiresAt) {
+            localStorage.removeItem(UNDO_KEY);
+            return null;
+          }
+          return parsed;
+        } catch (error) {
+          localStorage.removeItem(UNDO_KEY);
+          return null;
+        }
+      }
+
+      function saveUndoState(state) {
+        localStorage.setItem(
+          UNDO_KEY,
+          JSON.stringify({
+            record: state.record,
+            monthKey: state.monthKey,
+            expiresAt: Date.now() + ONE_DAY_MS
+          })
+        );
+      }
+
+      function clearUndoState() {
+        lastDeletedState = null;
+        localStorage.removeItem(UNDO_KEY);
+        if (undoTimerId) {
+          clearTimeout(undoTimerId);
+          undoTimerId = null;
+        }
+        undoToast.classList.remove("show");
+        syncUndoButtonState();
+      }
+
+      function syncUndoButtonState() {
+        restoreDeleteBtn.disabled = !lastDeletedState;
+      }
+
+      function showUndoToast(record, monthKey) {
+        lastDeletedState = { record: record, monthKey: monthKey };
+        saveUndoState(lastDeletedState);
+        syncUndoButtonState();
+        if (undoTimerId) clearTimeout(undoTimerId);
+        undoToast.classList.add("show");
+        undoTimerId = setTimeout(function () {
+          undoToast.classList.remove("show");
+        }, 4000);
+      }
+
+      function ensureMonthExists(monthKey) {
+        if (!recordsByMonth[monthKey]) {
+          recordsByMonth[monthKey] = [];
+          saveRecordsByMonth();
+        }
+        if (typeof budgetByMonth[monthKey] !== "number") {
+          budgetByMonth[monthKey] = DEFAULT_BUDGET;
+          saveBudgetByMonth();
+        }
+      }
+
+      function refreshMonthSelect() {
+        const monthSet = new Set(Object.keys(recordsByMonth).concat(Object.keys(budgetByMonth)));
+        monthSet.add(currentMonthKey);
+        const options = Array.from(monthSet).sort(function (a, b) {
+          return b.localeCompare(a);
+        });
+        monthSelect.innerHTML = options
+          .map(function (key) {
+            const selected = key === currentMonthKey ? " selected" : "";
+            return "<option value='" + key + "'" + selected + ">" + formatMonthLabel(key) + "</option>";
+          })
+          .join("");
+      }
+
+      function formatDate(dateText) {
+        const d = new Date(dateText + "T00:00:00");
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return month + "-" + day;
+      }
+
+      function formatMoney(value) {
+        const sign = value >= 0 ? "+ " : "- ";
+        return sign + "¥ " + Math.abs(value).toFixed(2);
+      }
+
+      function formatBudget(value) {
+        return "¥ " + Number(value).toFixed(2);
+      }
+
+      function render(currentRecords, currentBudget) {
+        monthSubtitle.textContent = "当前账本：" + currentMonthKey + " · 每天记一点，小金库更清晰";
+
+        if (currentRecords.length === 0) {
+          recordBody.innerHTML = "<tr><td colspan='6'>这个月还没有记录，先新增第一笔吧。</td></tr>";
+        } else {
+          recordBody.innerHTML = currentRecords
+            .slice()
+            .sort(function (a, b) {
+              return b.date.localeCompare(a.date);
+            })
+            .map(function (item) {
+              const tagClass = tagClassMap[item.category] || "life";
+              const moneyClass = item.amount >= 0 ? "money-positive" : "money-negative";
+              return (
+                "<tr>" +
+                "<td>" + formatDate(item.date) + "</td>" +
+                "<td><span class='tag " + tagClass + "'>" + item.category + "</span></td>" +
+                "<td>" + item.usage + "</td>" +
+                "<td class='" + moneyClass + "'>" + formatMoney(item.amount) + "</td>" +
+                "<td>" + (item.note || "-") + "</td>" +
+                "<td><button class='action-btn' type='button' data-id='" + item.id + "'>删除</button></td>" +
+                "</tr>"
+              );
+            })
+            .join("");
+        }
+
+        const spent = currentRecords
+          .filter(function (item) {
+            return item.amount < 0;
+          })
+          .reduce(function (sum, item) {
+            return sum + Math.abs(item.amount);
+          }, 0);
+
+        const left = currentBudget - spent;
+        budgetAmount.textContent = formatBudget(currentBudget);
+        spentAmount.textContent = formatBudget(spent);
+        leftAmount.textContent = formatBudget(left);
+        budgetInput.value = String(currentBudget);
+      }
+
+      function switchMonth(monthKey) {
+        currentMonthKey = monthKey;
+        ensureMonthExists(currentMonthKey);
+        records = recordsByMonth[currentMonthKey].slice();
+        budget = Number(budgetByMonth[currentMonthKey]);
+        if (!Number.isFinite(budget) || budget < 0) budget = DEFAULT_BUDGET;
+        budgetByMonth[currentMonthKey] = budget;
+        saveBudgetByMonth();
+        refreshMonthSelect();
+        render(records, budget);
+        setDateInputToToday();
+      }
+
+      function restoreDeletedRecord() {
+        if (!lastDeletedState) return;
+        const targetMonth = lastDeletedState.monthKey;
+        ensureMonthExists(targetMonth);
+        recordsByMonth[targetMonth] = recordsByMonth[targetMonth].concat([lastDeletedState.record]);
+        saveRecordsByMonth();
+        if (targetMonth === currentMonthKey) {
+          records = recordsByMonth[currentMonthKey].slice();
+          render(records, budget);
+        }
+        clearUndoState();
+      }
+
+      ensureMonthExists(currentMonthKey);
+      initCreateMonthControls();
+      switchMonth(currentMonthKey);
+      syncCreateMonthControls(currentMonthKey);
+      syncUndoButtonState();
+
+      entryForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const date = dateInput.value;
+        const category = categoryInput.value;
+        const usage = usageInput.value.trim();
+        const amountRaw = Number(amountInput.value);
+        const note = noteInput.value.trim();
+
+        if (!date || !usage || !Number.isFinite(amountRaw) || amountRaw <= 0) {
+          return;
+        }
+        if (!date.startsWith(currentMonthKey + "-")) {
+          window.alert("新增记录的日期需在当前月份账本内。");
+          return;
+        }
+
+        const amount = category === "收入" ? Math.abs(amountRaw) : -Math.abs(amountRaw);
+        const nextRecord = {
+          id: "r" + Date.now(),
+          date: date,
+          category: category,
+          usage: usage,
+          amount: amount,
+          note: note
+        };
+        records.push(nextRecord);
+        recordsByMonth[currentMonthKey] = records.slice();
+        saveRecordsByMonth();
+        render(records, budget);
+        entryForm.reset();
+        dateInput.value = date;
+      });
+
+      recordBody.addEventListener("click", function (event) {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) return;
+        if (!target.matches("button[data-id]")) return;
+        const id = target.dataset.id;
+        const removedRecord = records.find(function (item) {
+          return item.id === id;
+        });
+        records = records.filter(function (item) {
+          return item.id !== id;
+        });
+        recordsByMonth[currentMonthKey] = records.slice();
+        saveRecordsByMonth();
+        render(records, budget);
+        if (removedRecord) showUndoToast(removedRecord, currentMonthKey);
+      });
+
+      undoDeleteBtn.addEventListener("click", restoreDeletedRecord);
+      restoreDeleteBtn.addEventListener("click", restoreDeletedRecord);
+
+      saveBudgetBtn.addEventListener("click", function () {
+        const value = Number(budgetInput.value);
+        if (!Number.isFinite(value) || value < 0) return;
+        budget = value;
+        budgetByMonth[currentMonthKey] = budget;
+        saveBudgetByMonth();
+        render(records, budget);
+      });
+
+      monthSelect.addEventListener("change", function () {
+        switchMonth(monthSelect.value);
+        syncCreateMonthControls(currentMonthKey);
+      });
+
+      searchMonthBtn.addEventListener("click", function () {
+        switchMonth(monthSelect.value);
+        syncCreateMonthControls(currentMonthKey);
+      });
+
+      createMonthBtn.addEventListener("click", function () {
+        const nextMonth = getCreateMonthKey();
+        if (!nextMonth) return;
+        ensureMonthExists(nextMonth);
+        switchMonth(nextMonth);
+        syncCreateMonthControls(currentMonthKey);
+      });
+    </script>
+  </body>
+</html>
